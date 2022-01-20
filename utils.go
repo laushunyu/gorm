@@ -61,6 +61,7 @@ func newSafeMap() *safeMap {
 type SqlExpr struct {
 	expr string
 	args []interface{}
+	err  error
 }
 
 // Expr generate raw SQL expression, for example:
