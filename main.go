@@ -230,7 +230,12 @@ func (s *DB) SubQuery() *SqlExpr {
 	scope.InstanceSet("skip_bindvar", true)
 	scope.prepareQuerySQL()
 
-	return Expr(fmt.Sprintf("(%v)", scope.SQL), scope.SQLVars...)
+	expr := Expr(fmt.Sprintf("(%v)", scope.SQL), scope.SQLVars...)
+	if scope.HasError() {
+		expr.err = scope.db.Error
+	}
+
+	return expr
 }
 
 // Where return a new relation, filter records with given conditions, accepts `map`, `struct` or `string` as conditions, refer http://jinzhu.github.io/gorm/crud.html#query
@@ -357,7 +362,7 @@ func (s *DB) Find(out interface{}, where ...interface{}) *DB {
 	return s.NewScope(out).inlineCondition(where...).callCallbacks(s.parent.callbacks.queries).db
 }
 
-//Preloads preloads relations, don`t touch out
+// Preloads preloads relations, don`t touch out
 func (s *DB) Preloads(out interface{}) *DB {
 	return s.NewScope(out).InstanceSet("gorm:only_preload", 1).callCallbacks(s.parent.callbacks.queries).db
 }
@@ -847,9 +852,9 @@ func (s *DB) GetErrors() []error {
 	return []error{}
 }
 
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 // Private Methods For DB
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 
 func (s *DB) clone() *DB {
 	db := &DB{
