@@ -83,9 +83,9 @@ func Open(dialect string, args ...interface{}) (db *DB, err error) {
 	}
 
 	db = &DB{
-		db:        dbSQL,
-		logger:    defaultLogger,
-		
+		db:     dbSQL,
+		logger: defaultLogger,
+
 		// Create a clone of the default logger to avoid mutating a shared object when
 		// multiple gorm connections are created simultaneously.
 		callbacks: DefaultCallback.clone(defaultLogger),
@@ -443,6 +443,13 @@ func (s *DB) FirstOrCreate(out interface{}, where ...interface{}) *DB {
 // WARNING when update with struct, GORM will not update fields that with zero value
 func (s *DB) Update(attrs ...interface{}) *DB {
 	return s.Updates(toSearchableMap(attrs...), true)
+}
+
+// UpdateAll update all attributes with callbacks,
+// WARNING when update with struct, GORM will not update fields that with zero value
+func (s *DB) UpdateAll(value interface{}) *DB {
+	return s.NewScope(value).
+		callCallbacks(s.parent.callbacks.updates).db
 }
 
 // Updates update attributes with callbacks, refer: https://jinzhu.github.io/gorm/crud.html#update
